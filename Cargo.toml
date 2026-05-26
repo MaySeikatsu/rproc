@@ -1,7 +1,7 @@
 [package]
 name = "rproc"
 version = "0.1.0"
-edition = "2021"
+edition = "2024"
 description = "Resource & process monitor for Linux, inspired by Windows 11 Task Manager"
 license = "MIT"
 
@@ -13,6 +13,7 @@ egui_extras = { version = "0.32", default-features = false }
 sysinfo = "0.33"
 nvml-wrapper = "0.11"
 anyhow = "1"
+libc = "0.2"
 
 [profile.release]
 opt-level = 3

@@ -66,7 +66,11 @@ fn physical_disk_name(name: &str) -> String {
         || stripped.starts_with("xvd")
     {
         let trimmed = stripped.trim_end_matches(|c: char| c.is_ascii_digit());
-        if trimmed.is_empty() { stripped } else { trimmed }
+        if trimmed.is_empty() {
+            stripped
+        } else {
+            trimmed
+        }
     } else {
         stripped
     };
@@ -168,7 +172,8 @@ impl SystemSummary {
                 ..Default::default()
             });
             entry.partitions += 1;
-            entry.mounts
+            entry
+                .mounts
                 .push(disk.mount_point().to_string_lossy().into_owned());
             entry.total += disk.total_space();
             entry.used += disk.total_space().saturating_sub(disk.available_space());

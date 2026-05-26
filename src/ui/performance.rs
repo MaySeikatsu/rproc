@@ -117,7 +117,11 @@ fn collapse_button(ui: &mut egui::Ui, expand: bool) -> egui::Response {
         [egui::pos2(tip_x, c.y), egui::pos2(start_x, c.y + s)],
         stroke,
     );
-    let tip_text = if expand { "Show details" } else { "Hide details" };
+    let tip_text = if expand {
+        "Show details"
+    } else {
+        "Hide details"
+    };
     resp.on_hover_text(tip_text)
 }
 
@@ -168,8 +172,16 @@ fn render_cards(ui: &mut egui::Ui, snap: &Snapshot, current: &mut Section) {
     let empty_f64: VecDeque<f64> = VecDeque::new();
     for (i, d) in snap.system.disks.iter().enumerate() {
         let v = widgets::format_bps(d.read_bps + d.write_bps);
-        let r = snap.history.disk_read_bps.get(&d.name).unwrap_or(&empty_f64);
-        let w = snap.history.disk_write_bps.get(&d.name).unwrap_or(&empty_f64);
+        let r = snap
+            .history
+            .disk_read_bps
+            .get(&d.name)
+            .unwrap_or(&empty_f64);
+        let w = snap
+            .history
+            .disk_write_bps
+            .get(&d.name)
+            .unwrap_or(&empty_f64);
         card_button_bps(
             ui,
             &format!("disk{i}"),
@@ -247,6 +259,7 @@ fn combined_disk(a: &VecDeque<f64>, b: &VecDeque<f64>) -> VecDeque<f64> {
     out
 }
 
+#[allow(clippy::too_many_arguments)]
 fn card_button_pct(
     ui: &mut egui::Ui,
     id: &str,
@@ -275,6 +288,7 @@ fn card_button_pct(
     }
 }
 
+#[allow(clippy::too_many_arguments)]
 fn card_button_bps(
     ui: &mut egui::Ui,
     id: &str,
@@ -319,12 +333,17 @@ fn card_button_bps(
         });
     let rect = inner.response.rect;
     ui.add_space(6.0);
-    let resp = ui.interact(rect, egui::Id::new(("perf_card_bps", id)), egui::Sense::click());
+    let resp = ui.interact(
+        rect,
+        egui::Id::new(("perf_card_bps", id)),
+        egui::Sense::click(),
+    );
     if resp.clicked() {
         *current = section;
     }
 }
 
+#[allow(clippy::too_many_arguments)]
 fn card_button_inner(
     ui: &mut egui::Ui,
     id: &str,
@@ -354,20 +373,9 @@ fn card_button_inner(
                         ui.label(egui::RichText::new(value).color(color).strong().size(15.0));
                     });
                 });
-                ui.label(
-                    egui::RichText::new(subtitle)
-                        .color(theme::TEXT_DIM)
-                        .small(),
-                );
+                ui.label(egui::RichText::new(subtitle).color(theme::TEXT_DIM).small());
                 ui.add_space(2.0);
-                widgets::sparkline(
-                    ui,
-                    &format!("spark_{id}"),
-                    history,
-                    max,
-                    color,
-                    36.0,
-                );
+                widgets::sparkline(ui, &format!("spark_{id}"), history, max, color, 36.0);
             });
         });
     let rect = inner.response.rect;
@@ -402,16 +410,13 @@ fn panel_cpu(ui: &mut egui::Ui, snap: &Snapshot) {
         ui.vertical_centered(|ui| {
             ui.horizontal(|ui| {
                 ui.label(egui::RichText::new("Current").color(theme::TEXT_DIM));
-                ui.label(
-                    egui::RichText::new(format!("{:.0}%", snap.system.cpu_total)).strong(),
-                );
+                ui.label(egui::RichText::new(format!("{:.0}%", snap.system.cpu_total)).strong());
                 ui.add_space(20.0);
                 ui.separator();
                 ui.add_space(20.0);
                 ui.label(egui::RichText::new("Uptime").color(theme::TEXT_DIM));
                 ui.label(
-                    egui::RichText::new(widgets::format_duration(snap.system.uptime_secs))
-                        .strong(),
+                    egui::RichText::new(widgets::format_duration(snap.system.uptime_secs)).strong(),
                 );
             });
         });
@@ -496,8 +501,16 @@ fn panel_memory(ui: &mut egui::Ui, snap: &Snapshot) {
             &widgets::format_bytes(snap.system.ram_total.saturating_sub(snap.system.ram_used)),
         );
         ui.separator();
-        widgets::stat(ui, "Swap total", &widgets::format_bytes(snap.system.swap_total));
-        widgets::stat(ui, "Swap used", &widgets::format_bytes(snap.system.swap_used));
+        widgets::stat(
+            ui,
+            "Swap total",
+            &widgets::format_bytes(snap.system.swap_total),
+        );
+        widgets::stat(
+            ui,
+            "Swap used",
+            &widgets::format_bytes(snap.system.swap_used),
+        );
     });
 }
 
@@ -507,7 +520,11 @@ fn panel_disk(ui: &mut egui::Ui, snap: &Snapshot, idx: usize) {
         return;
     };
     ui.heading(format!("Disk — {}", short_disk_name(&d.name)));
-    let part_word = if d.partitions > 1 { "partitions" } else { "partition" };
+    let part_word = if d.partitions > 1 {
+        "partitions"
+    } else {
+        "partition"
+    };
     ui.label(
         egui::RichText::new(format!("{} · {} {}", d.fs, d.partitions, part_word))
             .color(theme::TEXT_DIM),
@@ -520,13 +537,7 @@ fn panel_disk(ui: &mut egui::Ui, snap: &Snapshot, idx: usize) {
 
     widgets::card(ui, |ui| {
         ui.label("Total I/O (read + write, last 60s)");
-        let max = widgets::max_in(
-            r_hist
-                .iter()
-                .zip(w_hist.iter())
-                .map(|(a, b)| a + b),
-        )
-        .max(1.0);
+        let max = widgets::max_in(r_hist.iter().zip(w_hist.iter()).map(|(a, b)| a + b)).max(1.0);
         widgets::big_plot_f64(
             ui,
             &format!("disk_plot_{idx}"),
@@ -559,9 +570,7 @@ fn panel_network(ui: &mut egui::Ui, snap: &Snapshot, idx: usize) {
         return;
     };
     ui.heading(iface_label(&snap.system.nets, idx));
-    ui.label(
-        egui::RichText::new(format!("{} · MAC {}", n.name, n.mac)).color(theme::TEXT_DIM),
-    );
+    ui.label(egui::RichText::new(format!("{} · MAC {}", n.name, n.mac)).color(theme::TEXT_DIM));
     ui.add_space(8.0);
 
     let empty: VecDeque<f64> = VecDeque::new();
@@ -598,8 +607,7 @@ fn panel_gpu(ui: &mut egui::Ui, snap: &Snapshot, idx: usize) {
     };
     ui.heading(format!("GPU — {}", g.name));
     ui.label(
-        egui::RichText::new(format!("{} · driver {}", g.vendor, g.driver))
-            .color(theme::TEXT_DIM),
+        egui::RichText::new(format!("{} · driver {}", g.vendor, g.driver)).color(theme::TEXT_DIM),
     );
     ui.add_space(8.0);
 

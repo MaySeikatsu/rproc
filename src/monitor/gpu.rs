@@ -1,5 +1,5 @@
 use std::fs;
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 
 use nvml_wrapper::Nvml;
 use nvml_wrapper::enum_wrappers::device::{Clock, TemperatureSensor};
@@ -37,13 +37,13 @@ impl GpuCollector {
 
     pub fn sample(&self) -> Vec<GpuInfo> {
         let mut out = Vec::new();
-        if let Some(nvml) = &self.nvml {
-            if let Ok(count) = nvml.device_count() {
-                let driver = nvml.sys_driver_version().unwrap_or_default();
-                for i in 0..count {
-                    if let Ok(dev) = nvml.device_by_index(i) {
-                        out.push(read_nvml(&dev, &driver));
-                    }
+        if let Some(nvml) = &self.nvml
+            && let Ok(count) = nvml.device_count()
+        {
+            let driver = nvml.sys_driver_version().unwrap_or_default();
+            for i in 0..count {
+                if let Ok(dev) = nvml.device_by_index(i) {
+                    out.push(read_nvml(&dev, &driver));
                 }
             }
         }
@@ -85,10 +85,7 @@ fn read_nvml(dev: &nvml_wrapper::Device, driver: &str) -> GpuInfo {
     let util = dev.utilization_rates().map(|u| u.gpu as f32).unwrap_or(0.0);
     let mem = dev.memory_info().ok();
     let temp = dev.temperature(TemperatureSensor::Gpu).unwrap_or(0) as f32;
-    let power = dev
-        .power_usage()
-        .map(|p| p as f32 / 1000.0)
-        .unwrap_or(0.0);
+    let power = dev.power_usage().map(|p| p as f32 / 1000.0).unwrap_or(0.0);
     let clock = dev.clock_info(Clock::Graphics).unwrap_or(0);
     let mem_clock = dev.clock_info(Clock::Memory).unwrap_or(0);
     GpuInfo {
@@ -113,7 +110,7 @@ fn read_file_f32(p: &PathBuf) -> Option<f32> {
     fs::read_to_string(p).ok()?.trim().parse().ok()
 }
 
-fn read_amd(device: &PathBuf) -> GpuInfo {
+fn read_amd(device: &Path) -> GpuInfo {
     let util = read_file_f32(&device.join("gpu_busy_percent")).unwrap_or(0.0);
     let mem_used = read_file_u64(&device.join("mem_info_vram_used")).unwrap_or(0);
     let mem_total = read_file_u64(&device.join("mem_info_vram_total")).unwrap_or(0);
@@ -141,7 +138,7 @@ fn read_amd(device: &PathBuf) -> GpuInfo {
     }
 }
 
-fn read_intel(device: &PathBuf) -> GpuInfo {
+fn read_intel(device: &Path) -> GpuInfo {
     // Intel sysfs exposes frequency but not utilization (without intel_gpu_top).
     let cur_freq = read_file_u64(&device.join("gt_act_freq_mhz"))
         .or_else(|| read_file_u64(&device.join("gt/gt0/rps_act_freq_mhz")))
@@ -169,7 +166,7 @@ fn read_intel(device: &PathBuf) -> GpuInfo {
     }
 }
 
-fn pci_model(device: &PathBuf) -> Option<String> {
+fn pci_model(device: &Path) -> Option<String> {
     // Try modalias / device / vendor id labels — fall back to drm card name.
     if let Ok(label) = fs::read_to_string(device.join("label")) {
         let t = label.trim();

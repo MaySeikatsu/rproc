@@ -4,7 +4,9 @@ use std::sync::{Arc, Mutex};
 use std::thread;
 use std::time::{Duration, Instant};
 
-use sysinfo::{Disks, MemoryRefreshKind, Networks, ProcessRefreshKind, ProcessesToUpdate, System, Users};
+use sysinfo::{
+    Disks, MemoryRefreshKind, Networks, ProcessRefreshKind, ProcessesToUpdate, System, Users,
+};
 
 use super::{gpu, processes, system};
 use crate::settings::{MAX_REFRESH_MS, MIN_REFRESH_MS};
@@ -48,6 +50,23 @@ pub struct Sampler {
 impl Sampler {
     pub fn start(refresh_ms: Arc<AtomicU64>) -> Self {
         let inner = Arc::new(Mutex::new(Snapshot::default()));
+
+        // Pre-fill the rolling history from the daemon's on-disk ring-buffer
+        // so the user sees up to the last 60 s of activity as soon as the
+        // window opens — even if rproc was just relaunched. The daemon
+        // only persists global aggregates, so per-core / per-interface /
+        // per-device series stay empty until the GUI samples them itself.
+        if let Ok(path) = crate::daemon::storage::history_path()
+            && let Ok(samples) = crate::daemon::storage::RingBuffer::read_all(&path)
+            && !samples.is_empty()
+        {
+            let mut snap = inner.lock().unwrap();
+            for s in &samples {
+                push_capped(&mut snap.history.cpu_total, s.cpu_total, HISTORY_LEN);
+                push_capped(&mut snap.history.ram_used_pct, s.ram_used_pct, HISTORY_LEN);
+            }
+        }
+
         let inner_t = inner.clone();
         thread::Builder::new()
             .name("rproc-sampler".into())
@@ -144,8 +163,12 @@ fn sampler_loop(out: Arc<Mutex<Snapshot>>, refresh_ms: Arc<AtomicU64>) {
                     .or_insert_with(|| VecDeque::with_capacity(HISTORY_LEN));
                 push_capped(w, n.tx_bps, HISTORY_LEN);
             }
-            snap.history.net_rx_bps.retain(|k, _| net_present.contains(k));
-            snap.history.net_tx_bps.retain(|k, _| net_present.contains(k));
+            snap.history
+                .net_rx_bps
+                .retain(|k, _| net_present.contains(k));
+            snap.history
+                .net_tx_bps
+                .retain(|k, _| net_present.contains(k));
 
             let mut present: HashSet<String> = HashSet::with_capacity(summary.disks.len());
             for d in &summary.disks {
@@ -163,8 +186,12 @@ fn sampler_loop(out: Arc<Mutex<Snapshot>>, refresh_ms: Arc<AtomicU64>) {
                     .or_insert_with(|| VecDeque::with_capacity(HISTORY_LEN));
                 push_capped(w, d.write_bps, HISTORY_LEN);
             }
-            snap.history.disk_read_bps.retain(|k, _| present.contains(k));
-            snap.history.disk_write_bps.retain(|k, _| present.contains(k));
+            snap.history
+                .disk_read_bps
+                .retain(|k, _| present.contains(k));
+            snap.history
+                .disk_write_bps
+                .retain(|k, _| present.contains(k));
 
             if snap.history.gpu_util.len() != gpus.len() {
                 snap.history.gpu_util = (0..gpus.len())

@@ -282,7 +282,13 @@ fn parse_duration_to_ms(s: &str) -> Option<u64> {
             "min" => 60_000.0,
             "h" => 3_600_000.0,
             "d" => 86_400_000.0,
-            _ => return if matched_any { Some(total as u64) } else { None },
+            _ => {
+                return if matched_any {
+                    Some(total as u64)
+                } else {
+                    None
+                };
+            }
         };
         total += num * factor_ms;
         matched_any = true;

@@ -46,11 +46,7 @@ pub fn show(ui: &mut egui::Ui, _state: &mut State, settings: &Settings) {
 
         // Fine slider for arbitrary values.
         ui.horizontal(|ui| {
-            ui.label(
-                egui::RichText::new("Custom")
-                    .color(theme::TEXT_DIM)
-                    .small(),
-            );
+            ui.label(egui::RichText::new("Custom").color(theme::TEXT_DIM).small());
             let mut value = current;
             let resp = ui.add(
                 egui::Slider::new(&mut value, MIN_REFRESH_MS..=MAX_REFRESH_MS)
@@ -80,7 +76,11 @@ pub fn show(ui: &mut egui::Ui, _state: &mut State, settings: &Settings) {
         widgets::stat(
             ui,
             "Build",
-            if cfg!(debug_assertions) { "debug" } else { "release" },
+            if cfg!(debug_assertions) {
+                "debug"
+            } else {
+                "release"
+            },
         );
     });
 }
@@ -103,7 +103,7 @@ fn preset_chip(ui: &mut egui::Ui, label: &str, selected: bool) -> egui::Response
 fn format_ms(ms: u64) -> String {
     if ms < 1000 {
         format!("{ms} ms")
-    } else if ms % 1000 == 0 {
+    } else if ms.is_multiple_of(1000) {
         format!("{} s", ms / 1000)
     } else {
         format!("{:.1} s", ms as f64 / 1000.0)

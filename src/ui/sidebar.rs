@@ -115,10 +115,8 @@ fn paint_icon(painter: &egui::Painter, tab: Tab, rect: egui::Rect, color: egui::
             for (i, h_ratio) in bars.iter().enumerate() {
                 let x = start_x + i as f32 * (bar_w + gap);
                 let h = rect.height() * h_ratio;
-                let bar = egui::Rect::from_min_size(
-                    egui::pos2(x, rect.max.y - h),
-                    egui::vec2(bar_w, h),
-                );
+                let bar =
+                    egui::Rect::from_min_size(egui::pos2(x, rect.max.y - h), egui::vec2(bar_w, h));
                 painter.rect_filled(bar, egui::CornerRadius::same(1), color);
             }
         }

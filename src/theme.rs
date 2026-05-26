@@ -41,11 +41,23 @@ pub fn apply(ctx: &egui::Context) {
     style.spacing.button_padding = egui::vec2(10.0, 6.0);
     style.spacing.window_margin = egui::Margin::same(8);
     style.text_styles = std::collections::BTreeMap::from([
-        (TextStyle::Heading, FontId::new(20.0, FontFamily::Proportional)),
+        (
+            TextStyle::Heading,
+            FontId::new(20.0, FontFamily::Proportional),
+        ),
         (TextStyle::Body, FontId::new(13.5, FontFamily::Proportional)),
-        (TextStyle::Monospace, FontId::new(12.5, FontFamily::Monospace)),
-        (TextStyle::Button, FontId::new(13.0, FontFamily::Proportional)),
-        (TextStyle::Small, FontId::new(11.5, FontFamily::Proportional)),
+        (
+            TextStyle::Monospace,
+            FontId::new(12.5, FontFamily::Monospace),
+        ),
+        (
+            TextStyle::Button,
+            FontId::new(13.0, FontFamily::Proportional),
+        ),
+        (
+            TextStyle::Small,
+            FontId::new(11.5, FontFamily::Proportional),
+        ),
     ]);
     ctx.set_style(style);
 }

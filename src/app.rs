@@ -81,9 +81,7 @@ impl eframe::App for App {
                 Tab::Performance => ui::performance::show(ui, &mut self.performance, &snap),
                 Tab::Startup => ui::startup::show(ui, &mut self.startup),
                 Tab::Services => ui::services::show(ui, &mut self.services),
-                Tab::Settings => {
-                    ui::settings::show(ui, &mut self.settings_state, &self.settings)
-                }
+                Tab::Settings => ui::settings::show(ui, &mut self.settings_state, &self.settings),
             });
     }
 }

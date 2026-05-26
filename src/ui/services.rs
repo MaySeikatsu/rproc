@@ -40,10 +40,7 @@ pub fn show(ui: &mut egui::Ui, state: &mut State) {
             );
         });
     });
-    ui.label(
-        egui::RichText::new("systemd system + user units (.service).")
-            .color(theme::TEXT_DIM),
-    );
+    ui.label(egui::RichText::new("systemd system + user units (.service).").color(theme::TEXT_DIM));
 
     if let Some((ok, msg)) = &state.last_message {
         ui.colored_label(if *ok { theme::OK } else { theme::ERR }, msg);
@@ -114,9 +111,7 @@ pub fn show(ui: &mut egui::Ui, state: &mut State) {
                             ui.label(scope_str(&s.scope));
                         });
                         row.col(|ui| {
-                            ui.label(
-                                egui::RichText::new(&s.active).color(active_color(&s.active)),
-                            );
+                            ui.label(egui::RichText::new(&s.active).color(active_color(&s.active)));
                         });
                         row.col(|ui| {
                             ui.label(&s.sub);

@@ -34,6 +34,31 @@ Built in Rust with [`egui`](https://github.com/emilk/egui).
 cargo run --release
 ```
 
+## Background sampling
+
+`rproc` keeps a 60-sample rolling window of system metrics
+(`~/.cache/rproc/history.bin`, ~2 KB, fixed size — no growth, no leak)
+so re-opening the window shows the last minute of CPU and memory
+activity even after a full close.
+
+The collector runs as a detached background process, auto-spawned the
+first time you launch the GUI (`setsid`-detached, so closing rproc
+leaves it running). You can also start it on its own:
+
+```bash
+rproc --daemon
+```
+
+To have it start at login, install the binary and enable the systemd
+user unit:
+
+```bash
+cargo install --path .
+mkdir -p ~/.config/systemd/user
+cp packaging/rprocd.service ~/.config/systemd/user/
+systemctl --user enable --now rprocd
+```
+
 ## License
 
 MIT

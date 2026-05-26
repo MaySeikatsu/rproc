@@ -47,10 +47,7 @@ struct Group<'a> {
 
 #[derive(Clone, Copy)]
 enum Row<'a> {
-    GroupHeader {
-        g: &'a Group<'a>,
-        expanded: bool,
-    },
+    GroupHeader { g: &'a Group<'a>, expanded: bool },
     Single(&'a monitor::processes::ProcInfo),
     Child(&'a monitor::processes::ProcInfo),
 }
@@ -225,10 +222,10 @@ pub fn show(ui: &mut egui::Ui, state: &mut State, snap: &Snapshot) {
                 });
         });
 
-    if let Some(name) = toggle_group {
-        if !state.expanded.remove(&name) {
-            state.expanded.insert(name);
-        }
+    if let Some(name) = toggle_group
+        && !state.expanded.remove(&name)
+    {
+        state.expanded.insert(name);
     }
     if let Some(pid) = click_pid {
         state.selected_pid = Some(pid);
