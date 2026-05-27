@@ -4,12 +4,14 @@
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
     flake-utils.url = "github:numtide/flake-utils";
+    crane.url = "github:ipetkov/crane";
   };
 
-  outputs = { self, nixpkgs, flake-utils }:
+  outputs = { self, nixpkgs, flake-utils, crane }:
     flake-utils.lib.eachDefaultSystem (system:
       let
         pkgs = nixpkgs.legacyPackages.${system};
+        craneLib = crane.mkLib pkgs;
 
         nativeBuildInputs = with pkgs; [
           pkg-config
@@ -20,11 +22,11 @@
           libGL
 
           # X11 (eframe x11 feature)
-          xorg.libX11
-          xorg.libxcb
-          xorg.libXcursor
-          xorg.libXi
-          xorg.libXrandr
+          libx11
+          libxcb
+          libxcursor
+          libxi
+          libxrandr
 
           # Wayland (eframe wayland feature)
           wayland
@@ -32,24 +34,30 @@
         ];
 
         runtimeLibPath = pkgs.lib.makeLibraryPath buildInputs;
-      in
-      {
-        packages.default = pkgs.rustPlatform.buildRustPackage {
-          pname = "rproc";
-          version = "0.1.3";
-          src = ./.;
-          cargoLock.lockFile = ./Cargo.lock;
 
+        commonArgs = {
+          src = craneLib.cleanCargoSource ./.;
+          strictDeps = true;
           inherit nativeBuildInputs buildInputs;
+        };
+
+        # Build deps-only crate for layer caching
+        cargoArtifacts = craneLib.buildDepsOnly commonArgs;
+
+        rproc = craneLib.buildPackage (commonArgs // {
+          inherit cargoArtifacts;
 
           postFixup = ''
             patchelf --add-rpath ${runtimeLibPath} $out/bin/rproc
           '';
-        };
+        });
+      in
+      {
+        packages.default = rproc;
 
         apps.default = {
           type = "app";
-          program = "${self.packages.${system}.default}/bin/rproc";
+          program = "${rproc}/bin/rproc";
         };
 
         devShells.default = pkgs.mkShell {
