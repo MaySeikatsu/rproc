@@ -34,6 +34,30 @@ sudo apt install ./rproc_<version>_amd64.deb
 sudo dnf install ./rproc-<version>-1.x86_64.rpm
 ```
 
+### NixOS / Nix
+
+```bash
+# Try out:
+nix run github:trystan-sa/rproc
+```
+
+```nix
+# Install via Flake:
+inputs = {
+  rproc = {
+      url = "github:trystan-sa/rproc";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+}
+# In nix configuration:
+{inputs, pkgs, ...}:{
+  environment.systemPackages = with pkgs; [
+    inputs.rproc.packages.${pkgs.stdenv.hostPlatform.system}.default
+  ];
+}
+
+```
+
 ### Flatpak
 
 ```bash
