@@ -34,10 +34,16 @@ sudo apt install ./rproc_<version>_amd64.deb
 sudo dnf install ./rproc-<version>-1.x86_64.rpm
 ```
 
+### Flatpak
+
+```bash
+flatpak install --user ./rproc-<version>-x86_64.flatpak
+flatpak run io.github.trystan_sa.rproc
+```
+
 ### NixOS / Nix
 
 ```bash
-# Try out:
 nix run github:trystan-sa/rproc
 ```
 
@@ -48,21 +54,14 @@ inputs = {
       url = "github:trystan-sa/rproc";
       inputs.nixpkgs.follows = "nixpkgs";
     };
-}
+};
+
 # In nix configuration:
 {inputs, pkgs, ...}:{
   environment.systemPackages = with pkgs; [
     inputs.rproc.packages.${pkgs.stdenv.hostPlatform.system}.default
   ];
 }
-
-```
-
-### Flatpak
-
-```bash
-flatpak install --user ./rproc-<version>-x86_64.flatpak
-flatpak run io.github.trystan_sa.rproc
 ```
 
 ### From source
